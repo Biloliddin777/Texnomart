@@ -1,0 +1,31 @@
+[
+    {
+        "model": "Product",
+        "data": {
+            "id": 4,
+            "name": "juasd",
+            "title": null,
+            "created_at": "2024-10-17 12:57:28",
+            "updated_at": "2024-10-17 12:57:28"
+        }
+    },
+    {
+        "model": "Product",
+        "data": {
+            "id": 5,
+            "name": "vrrev",
+            "title": null,
+            "created_at": "2024-10-17 13:05:48",
+            "updated_at": "2024-10-17 13:05:48"
+        }
+    },
+    {
+        "model": "Category",
+        "data": {
+            "id": 6,
+            "title": "dvdwv",
+            "created_at": "2024-10-17 13:28:34",
+            "updated_at": "2024-10-17 13:28:34"
+        }
+    }
+]
