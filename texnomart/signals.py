@@ -7,7 +7,7 @@ import json
 import os
 from django.conf import settings
 
-# Signal for Product creation
+
 @receiver(post_save, sender=Product)
 def product_post_save(sender, instance, created, **kwargs):
     if created:
@@ -24,7 +24,10 @@ def product_post_save(sender, instance, created, **kwargs):
             fail_silently=False
         )
 
-# Signal for Product deletion
+
+post_save.connect(product_post_save, sender=Product)
+
+
 @receiver(pre_delete, sender=Product)
 def save_product_to_json_before_delete(sender, instance, **kwargs):
     file_path = os.path.join(settings.BASE_DIR, 'deleted_data.json')
@@ -51,7 +54,7 @@ def save_product_to_json_before_delete(sender, instance, **kwargs):
     with open(file_path, 'w') as file:
         json.dump(existing_data, file, indent=4)
 
-# Signal for Category creation
+
 @receiver(post_save, sender=Category)
 def category_post_save(sender, instance, created, **kwargs):
     if created:
@@ -68,7 +71,7 @@ def category_post_save(sender, instance, created, **kwargs):
             fail_silently=False
         )
 
-# Signal for Category deletion
+
 @receiver(pre_delete, sender=Category)
 def save_category_to_json_before_delete(sender, instance, **kwargs):
     file_path = os.path.join(settings.BASE_DIR, 'deleted_data.json')
