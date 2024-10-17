@@ -1,5 +1,7 @@
+from django.core.cache import cache
+
 from django.shortcuts import render, get_object_or_404
-from rest_framework import viewsets
+from rest_framework import viewsets, status
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from .models import Category, Product, Image, Order, Comment, AttributeKey, AttributeValue, ProductAttribute
@@ -8,20 +10,41 @@ from .serializers import (
     OrderSerializer, CommentSerializer, AttributeKeySerializer,
     AttributeValueSerializer, ProductAttributeSerializer
 )
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAuthenticated, AllowAny
 
 
 class CategoryViewSet(viewsets.ModelViewSet):
-    permission_classes = (IsAuthenticated,)
+    permission_classes = (AllowAny,)
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
 
+    def get(self, request):
+        cache_key = 'category_list'
+        cached_data = cache.get(cache_key)
+
+        if not cached_data:
+            categories = Category.objects.all()
+            serializer = CategorySerializer(categories, many=True, context={'request': request})
+            cache.set(cache_key, serializer.data, timeout=60 * 3)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+
+        return Response(cached_data, status=status.HTTP_200_OK)
+
+
 
 class ProductViewSet(viewsets.ModelViewSet):
-    permission_classes = (IsAuthenticated,)
+    permission_classes = (AllowAny,)
     queryset = Product.objects.all()
     serializer_class = ProductSerializer
 
+    def get_queryset(self):
+        cache_key = 'product_list'
+        cached_data = cache.get(cache_key)
+        if not cached_data:
+            queryset = Product.objects.all().select_related('category')
+            cache.set(cache_key, queryset, timeout=60 * 3)
+            return queryset
+        return cached_data
 
 class ImageViewSet(viewsets.ModelViewSet):
     permission_classes = (IsAuthenticated,)

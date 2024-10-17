@@ -155,7 +155,6 @@ EMAIL_HOST_USER = 'biloliddin14042009@gmail.com'
 EMAIL_HOST_PASSWORD = 'rmni zxme iixq wzns'
 EMAIL_DEFAULT_SENDER = EMAIL_HOST_USER
 
-
 from datetime import timedelta
 
 ...
@@ -215,7 +214,7 @@ INTERNAL_IPS = [
 CACHES = {
     "default": {
         "BACKEND": "django.core.cache.backends.filebased.FileBasedCache",
-        "LOCATION": "C:/django_API/cache/"
+        "LOCATION": BASE_DIR / 'cache',
     }
 }
 # CACHES = {
