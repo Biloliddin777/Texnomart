@@ -15,8 +15,10 @@ from texnomart.models import Product
 from texnomart.serializers import ProductSerializer
 from .serializer import UserSerializer
 
+
 class UserLoginApiView(APIView):
     serializer_class = UserSerializer
+
     def post(self, request):
         username = request.data.get('username')
         password = request.data.get('password')
@@ -25,12 +27,11 @@ class UserLoginApiView(APIView):
 
         if user:
             refresh = RefreshToken.for_user(user)
-
             response = {
                 'success': True,
                 'refresh': str(refresh),
                 'access': str(refresh.access_token),
-                'authentication': {
+                'user': {
                     'username': user.username,
                     'email': user.email,
                     'first_name': user.first_name,
@@ -38,8 +39,7 @@ class UserLoginApiView(APIView):
                 }
             }
             return Response(response, status=status.HTTP_200_OK)
-        else:
-            return Response({'error': 'Invalid credentials'}, status=status.HTTP_401_UNAUTHORIZED)
+        return Response({'error': 'Invalid credentials'}, status=status.HTTP_401_UNAUTHORIZED)
 
 
 class UserLogoutApiView(APIView):
@@ -47,12 +47,16 @@ class UserLogoutApiView(APIView):
     parser_classes = (JSONParser,)
 
     def post(self, request):
-        token = Token.objects.get(user=request.user)
-        token.delete()
-        return Response({"success": True, "detail": "Logged out!"}, status=status.HTTP_200_OK)
+        try:
+            token = Token.objects.get(user=request.user)
+            token.delete()
+            return Response({"success": True, "detail": "Logged out!"}, status=status.HTTP_200_OK)
+        except Token.DoesNotExist:
+            return Response({"error": "Token not found"}, status=status.HTTP_400_BAD_REQUEST)
 
 
 class UserRegisterAPIView(APIView):
+
     def post(self, request):
         username = request.data.get('username')
         password = request.data.get('password')
@@ -62,16 +66,13 @@ class UserRegisterAPIView(APIView):
             return Response({"error": "Username already taken"}, status=status.HTTP_400_BAD_REQUEST)
 
         user = User.objects.create_user(username=username, password=password, email=email)
-        user.save()
-
-        token, created = Token.objects.get_or_create(user=user)
+        token, _ = Token.objects.get_or_create(user=user)
 
         response = {
-            'success': 'True',
+            'success': True,
             'token': token.key,
-            'authentication': user.username,
+            'username': user.username,
             'email': user.email,
-            'created': created,
         }
         return Response(response, status=status.HTTP_201_CREATED)
 
@@ -84,6 +85,7 @@ class UserListView(ListAPIView):
     def get_queryset(self):
         cache_key = 'authentication-list'
         cached_data = cache.get(cache_key)
+
         if not cached_data:
             queryset = User.objects.all().select_related('profile')
             cache.set(cache_key, queryset, timeout=60 * 3)
